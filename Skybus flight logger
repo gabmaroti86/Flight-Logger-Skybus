@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#14171c" />
+<title>Flight Time Log</title>
+<style>
+:root{--bg:#14171c;--panel:#1c2127;--edge:#2a313a;--amber:#f5b301;--amberDim:#8a6a14;--green:#39d98a;--text:#e6eaef;--mute:#7d8794;--red:#ff5a52;--mono:ui-monospace,Menlo,Consolas,monospace;--sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);}
+body{padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);}
+.wrap{max-width:560px;margin:0 auto;padding:28px 18px 60px;}
+header{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:22px;}
+.brandBtn{display:flex;align-items:center;gap:7px;background:none;border:none;padding:0;cursor:pointer;font-size:13px;letter-spacing:3px;color:var(--mute);text-transform:uppercase;font-weight:600;text-align:left;max-width:100%;}
+.brandBtn .txt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.pencil{font-size:12px;color:var(--amberDim);flex-shrink:0;}
+.brandInput{width:100%;background:transparent;border:none;border-bottom:2px solid var(--amber);color:var(--text);font-size:14px;letter-spacing:2px;text-transform:uppercase;font-weight:600;padding:0 0 4px;outline:none;}
+.clock{font-family:var(--mono);font-size:15px;color:var(--amber);font-weight:700;flex-shrink:0;}
+.board{background:var(--panel);border:1px solid var(--edge);border-radius:14px;padding:18px;margin-bottom:18px;box-shadow:0 10px 30px rgba(0,0,0,.35);}
+label{font-size:11px;letter-spacing:2px;color:var(--mute);text-transform:uppercase;font-weight:600;}
+#flight{width:100%;margin-top:8px;background:transparent;border:none;border-bottom:2px solid var(--edge);color:var(--amber);font-family:var(--mono);font-size:40px;font-weight:700;letter-spacing:4px;padding:4px 0 8px;outline:none;}
+#flight.err{border-color:var(--red);color:var(--red);}
+.errmsg{color:var(--red);font-size:13px;margin-top:6px;display:none;}
+.errmsg.show{display:block;}
+.toggle{display:flex;margin-top:16px;border:1px solid var(--edge);border-radius:10px;overflow:hidden;}
+.toggle button{flex:1;background:transparent;color:var(--mute);border:none;padding:12px 0;font-size:14px;font-weight:700;letter-spacing:1px;cursor:pointer;}
+.toggle button.on{background:var(--amber);color:#1a1500;}
+.gates{display:flex;gap:14px;margin-top:16px;align-items:flex-end;}
+.gates .col{flex:1;}
+.gates .arrow{padding-bottom:6px;color:var(--amberDim);font-size:20px;}
+.gateInput{width:100%;margin-top:8px;background:transparent;border:none;border-bottom:2px solid var(--edge);color:var(--amber);font-family:var(--mono);font-size:22px;font-weight:700;letter-spacing:2px;padding:2px 0 4px;outline:none;}
+.counts{margin-top:16px;padding-top:14px;border-top:1px solid var(--edge);display:flex;flex-direction:column;gap:12px;}
+.cnt{display:flex;align-items:center;justify-content:space-between;}
+.cnt input{width:120px;background:transparent;border:none;border-bottom:2px solid var(--edge);color:var(--amber);font-family:var(--mono);font-size:22px;font-weight:700;text-align:right;padding:2px 0 4px;outline:none;}
+input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+button{font-family:var(--sans);cursor:pointer;}
+.stamp{width:100%;background:var(--amber);border:none;color:#1a1500;border-radius:12px;padding:22px 14px;font-size:18px;font-weight:700;margin-bottom:12px;}
+.stamp.ok{background:var(--green);color:#0c1410;}
+.save{width:100%;background:transparent;border:1px solid var(--edge);color:var(--text);border-radius:12px;padding:16px 14px;font-size:15px;font-weight:600;margin-bottom:26px;}
+.save.ok{background:var(--green);border-color:var(--green);color:#0c1410;}
+.logbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.logttl{font-size:12px;letter-spacing:2px;color:var(--mute);text-transform:uppercase;font-weight:600;}
+.links{display:flex;gap:14px;}
+.link{background:none;border:none;font-size:13px;font-weight:600;padding:0;}
+.link.amber{color:var(--amber);}.link.mute{color:var(--mute);}
+.total{display:flex;justify-content:space-between;align-items:center;background:var(--panel);border:1px solid var(--edge);border-radius:12px;padding:14px 16px;margin-bottom:18px;}
+.total .tl{font-size:11px;letter-spacing:2px;color:var(--mute);text-transform:uppercase;font-weight:600;}
+.total .tn{font-family:var(--mono);font-size:22px;font-weight:700;color:var(--amber);}
+.empty{border:1px dashed var(--edge);border-radius:12px;padding:30px 18px;text-align:center;color:var(--mute);font-size:14px;}
+.grp{margin-bottom:16px;}
+.grphd{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:6px;}
+.grphd .fl{font-family:var(--mono);font-weight:700;font-size:18px;color:var(--amber);letter-spacing:2px;}
+.grphd .badge{font-size:11px;font-weight:700;letter-spacing:1px;color:var(--mute);border:1px solid var(--edge);border-radius:6px;padding:2px 7px;}
+.grphd .route{font-family:var(--mono);font-size:13px;color:var(--text);}
+.grphd .pax{font-size:13px;color:var(--mute);letter-spacing:1px;}
+.card{background:var(--panel);border:1px solid var(--edge);border-radius:12px;overflow:hidden;}
+.row{display:flex;align-items:center;gap:12px;padding:12px 14px;}
+.row+.row{border-top:1px solid var(--edge);}
+.labBtn{flex:1;min-width:0;display:flex;align-items:center;gap:6px;background:none;border:none;padding:0;cursor:pointer;color:var(--text);font-size:15px;text-align:left;}
+.labBtn .txt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.labInput{flex:1;min-width:0;background:transparent;border:none;border-bottom:2px solid var(--amber);color:var(--text);font-size:15px;padding:0 0 3px;outline:none;}
+.t{font-family:var(--mono);font-size:16px;font-weight:700;text-align:right;}
+.d{font-size:11px;color:var(--mute);text-align:right;}
+.timeBtn{background:none;border:none;padding:0;cursor:pointer;text-align:right;}
+.timeBtn .trow{display:flex;align-items:center;gap:5px;justify-content:flex-end;}
+.timeInput{background:var(--bg);color:var(--text);border:1px solid var(--amber);border-radius:8px;padding:6px 8px;font-family:var(--mono);font-size:13px;outline:none;color-scheme:dark;}
+.del{background:none;border:none;color:var(--mute);font-size:18px;padding:0 2px;line-height:1;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header><div id="titleSlot"></div><div class="clock" id="clock">--:--:--</div></header>
+  <div class="board">
+    <label for="flight">Flight number</label>
+    <input id="flight" placeholder="—— ———" spellcheck="false" autocomplete="off" />
+    <div class="errmsg" id="errmsg">Enter a flight number first.</div>
+    <div class="toggle" id="toggle">
+      <button data-dir="Arrival">Arrival</button>
+      <button data-dir="Departure" class="on">Departure</button>
+    </div>
+    <div class="gates">
+      <div class="col"><label for="fromGate">From gate</label><input id="fromGate" class="gateInput" placeholder="—" autocomplete="off" /></div>
+      <div class="arrow">→</div>
+      <div class="col"><label for="toGate">To gate</label><input id="toGate" class="gateInput" placeholder="—" autocomplete="off" /></div>
+    </div>
+    <div class="counts">
+      <div class="cnt"><label for="pax">Passengers</label><input id="pax" type="number" min="0" inputmode="numeric" placeholder="0" /></div>
+      <div class="cnt"><label for="highlift">Highlift</label><input id="highlift" type="number" min="0" inputmode="numeric" placeholder="0" /></div>
+      <div class="cnt"><label for="coordinator">Coordinator</label><input id="coordinator" type="number" min="0" inputmode="numeric" placeholder="0" /></div>
+      <div class="cnt"><label for="crew">Crew</label><input id="crew" type="number" min="0" inputmode="numeric" placeholder="0" /></div>
+    </div>
+  </div>
+  <button class="stamp" id="stampBtn">Log time stamp</button>
+  <button class="save" id="saveBtn">Save flight</button>
+  <div class="logbar"><div class="logttl" id="logTtl">Log</div><div class="links" id="links" style="display:none;"><button class="link amber" id="exportBtn">Export CSV</button><button class="link mute" id="clearBtn">Clear</button></div></div>
+  <div class="total" id="total" style="display:none;"><div class="tl">Total passengers</div><div class="tn" id="totalNum">0</div></div>
+  <div id="log"></div>
+</div>
+<script>
+var EKEY="flightlog:entries",TKEY="flightlog:title";
+var entries=load(),title=loadT(),currentDir="Departure",editLabelId=null,editTimeId=null,editingTitle=false;
+function load(){try{return JSON.parse(localStorage.getItem(EKEY))||[]}catch(e){return[]}}
+function saveE(){try{localStorage.setItem(EKEY,JSON.stringify(entries))}catch(e){}}
+function loadT(){try{return localStorage.getItem(TKEY)||"Flight Time Log"}catch(e){return"Flight Time Log"}}
+function saveT(){try{localStorage.setItem(TKEY,title)}catch(e){}}
+var $=function(id){return document.getElementById(id)};
+var flightEl=$("flight"),fromEl=$("fromGate"),toEl=$("toGate"),paxEl=$("pax"),hlEl=$("highlift"),coEl=$("coordinator"),crEl=$("crew"),errEl=$("errmsg"),stampBtn=$("stampBtn"),saveBtn=$("saveBtn"),logEl=$("log"),logTtl=$("logTtl"),links=$("links"),totalEl=$("total"),totalNum=$("totalNum");
+function pad(n){return String(n).padStart(2,"0")}
+function fmtClock(d){return pad(d.getHours())+":"+pad(d.getMinutes())+":"+pad(d.getSeconds())}
+function fmtDay(d){var wd=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][d.getDay()],mo=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][d.getMonth()];return wd+" "+pad(d.getDate())+" "+mo}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function tsLocal(ts){var d=new Date(ts);return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())+"T"+pad(d.getHours())+":"+pad(d.getMinutes())+":"+pad(d.getSeconds())}
+function tick(){$("clock").textContent=fmtClock(new Date())}tick();setInterval(tick,1000);
+function renderTitle(){var s=$("titleSlot");if(editingTitle){s.innerHTML='<input class="brandInput" id="ti" maxlength="40">';var i=$("ti");i.value=title;i.focus();i.select();var c=function(){title=i.value.trim()||"Flight Time Log";editingTitle=false;saveT();renderTitle()};i.addEventListener("blur",c);i.addEventListener("keydown",function(e){if(e.key==="Enter")c()})}else{s.innerHTML='<button class="brandBtn" id="tb" title="Tap to rename"><span class="txt"></span><span class="pencil">\u270E</span></button>';$("tb").querySelector(".txt").textContent=title;$("tb").addEventListener("click",function(){editingTitle=true;renderTitle()})}}
+renderTitle();
+$("toggle").querySelectorAll("button").forEach(function(b){b.addEventListener("click",function(){currentDir=b.getAttribute("data-dir");$("toggle").querySelectorAll("button").forEach(function(x){x.classList.toggle("on",x===b)})})});
+function up(el){el.addEventListener("input",function(){var p=el.selectionStart;el.value=el.value.toUpperCase();try{el.setSelectionRange(p,p)}catch(e){}})}
+up(flightEl);up(fromEl);up(toEl);
+flightEl.addEventListener("input",function(){flightEl.classList.remove("err");errEl.classList.remove("show")});
+function flashErr(){flightEl.classList.add("err");errEl.classList.add("show");flightEl.focus();setTimeout(function(){flightEl.classList.remove("err");errEl.classList.remove("show")},1200)}
+stampBtn.addEventListener("click",function(){var fl=flightEl.value.trim().toUpperCase();if(!fl){flashErr();return}var p=parseInt(paxEl.value,10),num=function(el){var n=parseInt(el.value,10);return isNaN(n)?null:n};entries.unshift({id:Date.now()+Math.random(),flight:fl,label:"Time",ts:Date.now(),pax:isNaN(p)?null:p,highlift:num(hlEl),coordinator:num(coEl),crew:num(crEl),fromGate:fromEl.value.trim().toUpperCase(),toGate:toEl.value.trim().toUpperCase(),dir:currentDir});saveE();render();stampBtn.classList.add("ok");stampBtn.textContent="Logged \u2713";setTimeout(function(){stampBtn.classList.remove("ok");stampBtn.textContent="Log time stamp"},900)});
+saveBtn.addEventListener("click",function(){var fl=flightEl.value.trim().toUpperCase();if(!fl){flashErr();return}flightEl.value="";fromEl.value="";toEl.value="";paxEl.value="";hlEl.value="";coEl.value="";crEl.value="";saveBtn.classList.add("ok");saveBtn.textContent="Flight saved \u2713";setTimeout(function(){saveBtn.classList.remove("ok");saveBtn.textContent="Save flight"},1400)});
+$("exportBtn").addEventListener("click",function(){if(!entries.length)return;var rows=[["Flight","Direction","From gate","To gate","Event","Passengers","Highlift","Coordinator","Crew","Date","Time","ISO"]];entries.slice().reverse().forEach(function(e){var d=new Date(e.ts),v=function(x){return x==null?"":x};rows.push([e.flight,e.dir||"",e.fromGate||"",e.toGate||"",e.label,v(e.pax),v(e.highlift),v(e.coordinator),v(e.crew),fmtDay(d),fmtClock(d),d.toISOString()])});var csv=rows.map(function(r){return r.map(function(c){return'"'+String(c).replace(/"/g,'""')+'"'}).join(",")}).join("\n");var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download="flight-log-"+new Date().toISOString().slice(0,10)+".csv";a.click()});
+$("clearBtn").addEventListener("click",function(){if(entries.length&&confirm("Clear the entire log? This can't be undone.")){entries=[];saveE();render()}});
+function recent(items,key){for(var i=0;i<items.length;i++){var v=items[i][key];if(v!=null&&v!=="")return v}return null}
+function render(){
+ logTtl.textContent="Log"+(entries.length?" \u00b7 "+entries.length:"");
+ links.style.display=entries.length?"flex":"none";
+ if(!entries.length){totalEl.style.display="none";logEl.innerHTML='<div class="empty">No times logged yet. Enter a flight number and tap the button to stamp the time.</div>';return}
+ var order=[],groups={};entries.forEach(function(e){if(!groups[e.flight]){groups[e.flight]=[];order.push(e.flight)}groups[e.flight].push(e)});
+ var total=0,anyPax=false;order.forEach(function(fl){var p=recent(groups[fl],"pax");if(p!=null){total+=p;anyPax=true}});
+ totalEl.style.display=anyPax?"flex":"none";totalNum.textContent=total;
+ logEl.innerHTML=order.map(function(fl){
+  var items=groups[fl],p=recent(items,"pax"),gF=recent(items,"fromGate"),gT=recent(items,"toGate"),gD=recent(items,"dir"),hl=recent(items,"highlift"),co=recent(items,"coordinator"),cr=recent(items,"crew");
+  var route=(gF||gT)?((gF||"—")+" → "+(gT||"—")):"";
+  var counts=[p!=null?p+" pax":null,hl!=null?hl+" HL":null,co!=null?co+" coord":null,cr!=null?cr+" crew":null].filter(Boolean).join(" · ");
+  var head='<div class="grphd"><span class="fl">'+esc(fl)+'</span>'+(gD?'<span class="badge">'+(gD==="Arrival"?"ARR":"DEP")+'</span>':'')+(route?'<span class="route">'+esc(route)+'</span>':'')+(counts?'<span class="pax">· '+esc(counts)+'</span>':'')+'</div>';
+  var rows=items.map(function(e){
+   var d=new Date(e.ts);
+   var lab=(editLabelId===String(e.id))?'<input class="labInput" data-edit="'+e.id+'" maxlength="30" value="'+esc(e.label)+'">':'<button class="labBtn" data-lab="'+e.id+'" title="Tap to rename"><span class="txt">'+esc(e.label)+'</span><span class="pencil">\u270E</span></button>';
+   var tm=(editTimeId===String(e.id))?'<input class="timeInput" type="datetime-local" step="1" data-time="'+e.id+'" value="'+tsLocal(e.ts)+'">':'<button class="timeBtn" data-tb="'+e.id+'" title="Tap to adjust time"><div class="trow"><span class="t">'+fmtClock(d)+'</span><span class="pencil">\u270E</span></div><div class="d">'+fmtDay(d)+'</div></button>';
+   return '<div class="row">'+lab+tm+'<button class="del" data-id="'+e.id+'" aria-label="Delete">\u00d7</button></div>';
+  }).join("");
+  return '<div class="grp">'+head+'<div class="card">'+rows+'</div></div>';
+ }).join("");
+ logEl.querySelectorAll(".del").forEach(function(b){b.addEventListener("click",function(){var id=b.getAttribute("data-id");entries=entries.filter(function(e){return String(e.id)!==id});saveE();render()})});
+ logEl.querySelectorAll(".labBtn").forEach(function(b){b.addEventListener("click",function(){editLabelId=b.getAttribute("data-lab");render()})});
+ var li=logEl.querySelector(".labInput");
+ if(li){li.focus();try{li.setSelectionRange(li.value.length,li.value.length)}catch(e){}var c=function(){var id=li.getAttribute("data-edit"),val=li.value.trim()||"Time";entries=entries.map(function(e){return String(e.id)===id?Object.assign({},e,{label:val}):e});editLabelId=null;saveE();render()};li.addEventListener("blur",c);li.addEventListener("keydown",function(e){if(e.key==="Enter")c()})}
+ logEl.querySelectorAll(".timeBtn").forEach(function(b){b.addEventListener("click",function(){editTimeId=b.getAttribute("data-tb");render()})});
+ var ti=logEl.querySelector(".timeInput");
+ if(ti){ti.focus();var ap=function(){var id=ti.getAttribute("data-time"),ts=new Date(ti.value).getTime();if(!isNaN(ts))entries=entries.map(function(e){return String(e.id)===id?Object.assign({},e,{ts:ts}):e})};ti.addEventListener("change",ap);ti.addEventListener("blur",function(){ap();editTimeId=null;saveE();render()});ti.addEventListener("keydown",function(e){if(e.key==="Enter"){ap();editTimeId=null;saveE();render()}})}
+}
+render();
+// Inline app manifest so "Add to Home screen" gives a proper standalone app + icon
+(function(){
+ var svg="<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' fill='#14171c'/><g fill='none' stroke='#f5b301' stroke-width='24' stroke-linecap='round'><circle cx='256' cy='256' r='150'/><path d='M256 256V154'/><path d='M256 256l74 30'/></g><circle cx='256' cy='256' r='20' fill='#f5b301'/></svg>";
+ var icon="data:image/svg+xml,"+encodeURIComponent(svg);
+ var ti=document.createElement("link");ti.rel="apple-touch-icon";ti.href=icon;document.head.appendChild(ti);
+ var base=location.href.replace(/[^\/]*([?#].*)?$/,"");
+ var m={name:"Flight Time Log",short_name:"Flight Log",start_url:location.href,scope:base,display:"standalone",orientation:"portrait",background_color:"#14171c",theme_color:"#14171c",icons:[{src:icon,sizes:"any",type:"image/svg+xml",purpose:"any maskable"}]};
+ var l=document.createElement("link");l.rel="manifest";l.href=URL.createObjectURL(new Blob([JSON.stringify(m)],{type:"application/manifest+json"}));document.head.appendChild(l);
+})();
+</script>
+</body>
+</html>
