@@ -35,11 +35,13 @@ function renderMovement(){
   const labels=state.labels[state.movementType];
   $("timestampList").innerHTML=labels.map((l,i)=>`
     <div class="timestamp-row">
-      <button class="timestamp-btn ${state.timestamps[i]?"done":""}" data-stamp="${i}">
-        <strong>${i+1}. ${esc(l)}</strong>
-        <span>${fmtTime(state.timestamps[i])}</span>
-      </button>
-      <button class="rename-toggle" data-rename="${i}">Rename</button>
+      <div class="timestamp-main-row">
+        <button class="timestamp-btn ${state.timestamps[i]?"done":""}" data-stamp="${i}">
+          <strong>${i+1}. ${esc(l)}</strong>
+          <span>${fmtTime(state.timestamps[i])}</span>
+        </button>
+        <button class="rename-icon" data-rename="${i}" aria-label="Rename timestamp" title="Rename timestamp">✎</button>
+      </div>
       <div class="timestamp-editor" id="editor-${i}" hidden>
         <input value="${esc(l)}" data-label="${i}">
         <button class="btn ghost reset-label" data-i="${i}">Reset</button>
