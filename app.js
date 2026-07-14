@@ -1,5 +1,5 @@
 const ARRIVAL_DEFAULTS=["Chocks","First passenger on bus","Last passenger at aircraft","Arrived at gate","Last passenger departed bus"];
-const DEPARTURE_DEFAULTS=["First passenger on board","Last passenger on bus","Arrived at aircraft / gate","Last passenger departed bus"];
+const DEPARTURE_DEFAULTS=["First passenger on board","Last passenger on bus","Arrived at aircraft / gate","Last passenger departed bus","Aircraft pushback"];
 const $=id=>document.getElementById(id);
 const store={get(k,f){try{return JSON.parse(localStorage.getItem(k))??f}catch{return f}},set(k,v){localStorage.setItem(k,JSON.stringify(v))}};
 let state={loggedIn:false,session:null,movementType:"arrival",count:0,totals:{passengers:0,highlift:0,crew:0},route:{from:"",to:""},flight:{number:"",airline:"",registration:""},timestamps:{},labels:{arrival:[...ARRIVAL_DEFAULTS],departure:[...DEPARTURE_DEFAULTS]},editingId:null};
@@ -13,7 +13,62 @@ function login(){const b=$("busId").value.trim().toUpperCase(),km=Number($("star
 function capture(){state.flight={number:$("flightNumber").value.trim().toUpperCase(),registration:$("aircraftRegistration").value.trim().toUpperCase(),airline:$("airline").value.trim()};state.route={from:$("fromLocation").value.trim().toUpperCase(),to:$("toLocation").value.trim().toUpperCase()};state.totals={passengers:Math.max(0,Number($("totalPassengers").value)||0),highlift:Math.max(0,Number($("totalHighlift").value)||0),crew:Math.max(0,Number($("totalCrew").value)||0)};state.count=state.totals.passengers;persist()}
 function render(){ $("loginScreen").hidden=state.loggedIn;$("appScreen").hidden=!state.loggedIn;if(!state.loggedIn)return;$("sessionSummary").textContent=`Bus ${state.session.busId} · Start ${state.session.startKm} km`;renderCounter();renderMovement();renderDashboard();renderFlightLog();renderHistory()}
 function renderCounter(){$("passengerCount").textContent=state.count;$("passengerPill").textContent=`${state.count} pax`;$("totalPassengers").value=state.totals.passengers;$("totalHighlift").value=state.totals.highlift;$("totalCrew").value=state.totals.crew}
-function renderMovement(){const a=state.movementType==="arrival";$("arrivalBtn").classList.toggle("active",a);$("departureBtn").classList.toggle("active",!a);$("fromLabel").textContent=a?"From bay":"From gate";$("toLabel").textContent=a?"To gate":"To bay / aircraft";$("flightNumber").value=state.flight.number;$("aircraftRegistration").value=state.flight.registration;$("airline").value=state.flight.airline;$("fromLocation").value=state.route.from;$("toLocation").value=state.route.to;const labels=(state.labels&&state.labels[state.movementType])||(a?ARRIVAL_DEFAULTS:DEPARTURE_DEFAULTS);$("timestampList").innerHTML=labels.map((l,i)=>`<div class="timestamp-row"><div class="timestamp-edit"><input value="${esc(l)}" data-label="${i}"><button class="btn ghost reset-label" data-i="${i}">Reset</button></div><button class="timestamp-btn ${state.timestamps[i]?"done":""}" data-stamp="${i}"><strong>${i+1}. ${esc(l)}</strong><span>${fmtTime(state.timestamps[i])}</span></button></div>`).join("");document.querySelectorAll("[data-label]").forEach(x=>x.onchange=()=>{const i=Number(x.dataset.label),v=x.value.trim();if(v)state.labels[state.movementType][i]=v;persist();renderMovement()});document.querySelectorAll(".reset-label").forEach(x=>x.onclick=()=>{const i=Number(x.dataset.i),d=a?ARRIVAL_DEFAULTS:DEPARTURE_DEFAULTS;state.labels[state.movementType][i]=d[i];persist();renderMovement()});document.querySelectorAll("[data-stamp]").forEach(x=>x.onclick=()=>{state.timestamps[Number(x.dataset.stamp)]=new Date().toISOString();persist();renderMovement();toast("Timestamp recorded")})}
+function renderMovement(){
+  const a=state.movementType==="arrival";
+  $("arrivalBtn").classList.toggle("active",a);
+  $("departureBtn").classList.toggle("active",!a);
+  $("fromLabel").textContent=a?"From bay":"From gate";
+  $("toLabel").textContent=a?"To gate":"To bay / aircraft";
+  $("flightNumber").value=state.flight.number;
+  $("aircraftRegistration").value=state.flight.registration;
+  $("airline").value=state.flight.airline;
+  $("fromLocation").value=state.route.from;
+  $("toLocation").value=state.route.to;
+
+  state.labels ||= {arrival:[...ARRIVAL_DEFAULTS],departure:[...DEPARTURE_DEFAULTS]};
+  state.labels.arrival ||= [...ARRIVAL_DEFAULTS];
+  state.labels.departure ||= [...DEPARTURE_DEFAULTS];
+  while(state.labels.departure.length < DEPARTURE_DEFAULTS.length){
+    state.labels.departure.push(DEPARTURE_DEFAULTS[state.labels.departure.length]);
+  }
+
+  const labels=state.labels[state.movementType];
+  $("timestampList").innerHTML=labels.map((l,i)=>`
+    <div class="timestamp-row">
+      <button class="timestamp-btn ${state.timestamps[i]?"done":""}" data-stamp="${i}">
+        <strong>${i+1}. ${esc(l)}</strong>
+        <span>${fmtTime(state.timestamps[i])}</span>
+      </button>
+      <button class="rename-toggle" data-rename="${i}">Rename</button>
+      <div class="timestamp-editor" id="editor-${i}" hidden>
+        <input value="${esc(l)}" data-label="${i}">
+        <button class="btn ghost reset-label" data-i="${i}">Reset</button>
+      </div>
+    </div>`).join("");
+
+  document.querySelectorAll("[data-stamp]").forEach(x=>x.onclick=()=>{
+    state.timestamps[Number(x.dataset.stamp)]=new Date().toISOString();
+    persist();renderMovement();toast("Timestamp recorded");
+  });
+
+  document.querySelectorAll("[data-rename]").forEach(x=>x.onclick=()=>{
+    const editor=$(`editor-${x.dataset.rename}`);
+    editor.hidden=!editor.hidden;
+    if(!editor.hidden) editor.querySelector("input").focus();
+  });
+
+  document.querySelectorAll("[data-label]").forEach(x=>x.onchange=()=>{
+    const i=Number(x.dataset.label),v=x.value.trim();
+    if(v) state.labels[state.movementType][i]=v;
+    persist();renderMovement();toast("Timestamp renamed");
+  });
+
+  document.querySelectorAll(".reset-label").forEach(x=>x.onclick=()=>{
+    const i=Number(x.dataset.i),d=a?ARRIVAL_DEFAULTS:DEPARTURE_DEFAULTS;
+    state.labels[state.movementType][i]=d[i];
+    persist();renderMovement();toast("Timestamp name reset");
+  });
+}
 function renderDashboard(){const m=state.session.movements,p=m.reduce((a,x)=>a+Number(x.passengers||0),0);$("dashFlights").textContent=m.length;$("dashPassengers").textContent=p;$("dashHighlift").textContent=m.reduce((a,x)=>a+Number(x.highlift||0),0);$("dashCrew").textContent=m.reduce((a,x)=>a+Number(x.crew||0),0);$("dashAverage").textContent=m.length?(p/m.length).toFixed(1):"0";$("dashKm").textContent=state.session.endKm==null?"In progress":(state.session.endKm-state.session.startKm).toFixed(1)}
 function saveFlight(){capture();if(!state.flight.number)return toast("Enter flight number");if(!state.route.from||!state.route.to)return toast("Enter both locations");if(!Object.keys(state.timestamps).length)return toast("Record at least one timestamp");const labels=state.labels[state.movementType],item={id:state.editingId||Date.now(),flightNumber:state.flight.number,aircraftRegistration:state.flight.registration,airline:state.flight.airline,type:state.movementType,from:state.route.from,to:state.route.to,passengers:state.totals.passengers,highlift:state.totals.highlift,crew:state.totals.crew,savedAt:new Date().toISOString(),timestamps:labels.map((n,i)=>({name:n,time:state.timestamps[i]||""}))};if(state.editingId){const i=state.session.movements.findIndex(x=>x.id===state.editingId);state.session.movements[i]=item;toast("Flight updated")}else{state.session.movements.push(item);toast("Flight saved")}resetMovement(false);persist();render()}
 function renderFlightLog(){const q=$("flightSearch").value.trim().toLowerCase(),list=state.session.movements.filter(m=>!q||`${m.flightNumber} ${m.aircraftRegistration} ${m.airline}`.toLowerCase().includes(q));$("flightLog").innerHTML=list.length?[...list].reverse().map(m=>`<div class="flight-item"><div class="flight-top"><div><strong>${esc(m.flightNumber)}${m.aircraftRegistration?` · ${esc(m.aircraftRegistration)}`:""}${m.airline?` · ${esc(m.airline)}`:""}</strong><small>${m.type==="arrival"?"Arrival":"Departure"} · ${esc(m.from)} → ${esc(m.to)} · Passengers ${m.passengers} · Highlift ${m.highlift} · Crew ${m.crew}</small></div><small>${fmtTime(m.savedAt)}</small></div><div class="flight-actions"><button class="btn ghost edit-flight" data-id="${m.id}">Edit</button><button class="btn danger delete-flight" data-id="${m.id}">Delete</button></div></div>`).join(""):'<p class="empty">No flights saved.</p>';document.querySelectorAll(".edit-flight").forEach(b=>b.onclick=()=>editFlight(Number(b.dataset.id)));document.querySelectorAll(".delete-flight").forEach(b=>b.onclick=()=>deleteFlight(Number(b.dataset.id)))}
