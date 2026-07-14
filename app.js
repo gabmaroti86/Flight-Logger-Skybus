@@ -42,10 +42,6 @@ function renderMovement(){
         </button>
         <button class="rename-icon" data-rename="${i}" aria-label="Rename timestamp" title="Rename timestamp">✎</button>
       </div>
-      <div class="timestamp-editor" id="editor-${i}" hidden>
-        <input value="${esc(l)}" data-label="${i}">
-        <button class="btn ghost reset-label" data-i="${i}">Reset</button>
-      </div>
     </div>`).join("");
 
   document.querySelectorAll("[data-stamp]").forEach(x=>x.onclick=()=>{
@@ -54,21 +50,14 @@ function renderMovement(){
   });
 
   document.querySelectorAll("[data-rename]").forEach(x=>x.onclick=()=>{
-    const editor=$(`editor-${x.dataset.rename}`);
-    editor.hidden=!editor.hidden;
-    if(!editor.hidden) editor.querySelector("input").focus();
-  });
-
-  document.querySelectorAll("[data-label]").forEach(x=>x.onchange=()=>{
-    const i=Number(x.dataset.label),v=x.value.trim();
-    if(v) state.labels[state.movementType][i]=v;
+    const i=Number(x.dataset.rename);
+    const current=state.labels[state.movementType][i];
+    const renamed=prompt("Rename timestamp",current);
+    if(renamed===null)return;
+    const clean=renamed.trim();
+    if(!clean)return toast("Timestamp name cannot be blank");
+    state.labels[state.movementType][i]=clean;
     persist();renderMovement();toast("Timestamp renamed");
-  });
-
-  document.querySelectorAll(".reset-label").forEach(x=>x.onclick=()=>{
-    const i=Number(x.dataset.i),d=a?ARRIVAL_DEFAULTS:DEPARTURE_DEFAULTS;
-    state.labels[state.movementType][i]=d[i];
-    persist();renderMovement();toast("Timestamp name reset");
   });
 }
 function renderDashboard(){const m=state.session.movements,p=m.reduce((a,x)=>a+Number(x.passengers||0),0);$("dashFlights").textContent=m.length;$("dashPassengers").textContent=p;$("dashHighlift").textContent=m.reduce((a,x)=>a+Number(x.highlift||0),0);$("dashCrew").textContent=m.reduce((a,x)=>a+Number(x.crew||0),0);$("dashAverage").textContent=m.length?(p/m.length).toFixed(1):"0";$("dashKm").textContent=state.session.endKm==null?"In progress":(state.session.endKm-state.session.startKm).toFixed(1)}
