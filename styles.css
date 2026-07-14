@@ -30,3 +30,51 @@
 .rename-icon:active{
   transform:translateY(1px);
 }
+
+.flight-item{
+  overflow:hidden;
+}
+.flight-summary{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  align-items:flex-start;
+  cursor:pointer;
+  list-style:none;
+}
+.flight-summary::-webkit-details-marker{display:none}
+.flight-summary small{
+  display:block;
+  color:var(--muted);
+  margin-top:4px;
+}
+.flight-summary>span{
+  color:var(--muted);
+  font-size:13px;
+  white-space:nowrap;
+}
+.flight-details{
+  margin-top:13px;
+  padding-top:10px;
+  border-top:1px solid rgba(75,100,127,.35);
+}
+.flight-detail-line{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:14px;
+  padding:9px 0;
+  border-bottom:1px solid rgba(75,100,127,.26);
+}
+.flight-detail-line span{
+  color:var(--muted);
+}
+.flight-detail-line strong{
+  text-align:right;
+}
+.timestamp-heading{
+  margin-top:15px;
+  padding-bottom:5px;
+  font-weight:900;
+  color:#dce9f7;
+}

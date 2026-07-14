@@ -5,7 +5,7 @@ Features:
 - Start and end-of-day kilometres
 - Manual Total Passengers, Total Highlift and Total Crew
 - Passenger clicker linked to Total Passengers
-- Flight number, aircraft registration and airline
+- Flight number
 - Arrivals and Departures
 - Renamable timestamp buttons
 - Flight log with Edit and Delete
