@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b1524">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<title>Airside Bus Logger</title>
+<style>
+:root{
+  --bg:#08111d;--panel:#111e2f;--panel2:#16263b;--edge:#2b3f57;
+  --text:#eef5ff;--muted:#98abc2;--blue:#2f80ed;--blue2:#1f6ed4;
+  --green:#24c486;--amber:#f5b642;--red:#f05b61;--shadow:0 12px 30px rgba(0,0,0,.28);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:linear-gradient(180deg,#08111d,#0b1624 35%,#07101a);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;min-height:100%}
+body{padding-bottom:env(safe-area-inset-bottom)}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+.hidden{display:none!important}
+.wrap{width:min(760px,100%);margin:auto;padding:16px}
+.brand{text-align:center;padding:22px 8px 16px}
+.brand h1{margin:0;font-size:clamp(28px,7vw,44px);letter-spacing:-1px}
+.brand p{margin:8px 0 0;color:var(--muted)}
+.card{background:rgba(17,30,47,.96);border:1px solid var(--edge);border-radius:20px;padding:16px;box-shadow:var(--shadow);margin-bottom:14px}
+.card h2,.card h3{margin:0 0 12px}
+label{display:block;color:#c9d6e6;font-weight:700;font-size:14px;margin-bottom:7px}
+input,select,textarea{width:100%;border:1px solid #38506b;background:#0c1726;color:var(--text);border-radius:13px;padding:14px 13px;outline:none}
+input:focus,select:focus,textarea:focus{border-color:#5ca1ff;box-shadow:0 0 0 3px rgba(47,128,237,.18)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+@media(max-width:540px){.grid2,.grid3{grid-template-columns:1fr}}
+.btn{width:100%;border:0;border-radius:14px;padding:14px 16px;font-weight:900;color:white;background:var(--blue);box-shadow:0 7px 16px rgba(47,128,237,.22)}
+.btn:active{transform:translateY(1px)}
+.btn.secondary{background:#243a53}
+.btn.green{background:var(--green);color:#05251a}
+.btn.amber{background:var(--amber);color:#2c1b00}
+.btn.red{background:var(--red)}
+.btn.outline{background:transparent;border:1px solid #4a6583;color:#dbe8f7}
+.topbar{position:sticky;top:0;z-index:10;background:rgba(8,17,29,.92);backdrop-filter:blur(12px);border-bottom:1px solid rgba(75,98,124,.3)}
+.topbar-inner{width:min(760px,100%);margin:auto;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.topbar .title{font-weight:900}
+.badge{display:inline-flex;align-items:center;gap:6px;background:#18314c;border:1px solid #2d4d6e;padding:7px 10px;border-radius:999px;font-size:13px}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0 14px}
+.tab{border:1px solid var(--edge);background:#0e1b2b;color:#b9c8da;border-radius:12px;padding:11px 6px;font-weight:800}
+.tab.active{background:var(--blue);color:white;border-color:var(--blue)}
+.toggleRow{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.toggle{display:flex;align-items:center;justify-content:center;gap:8px;padding:13px;border:1px solid var(--edge);border-radius:14px;background:#0d1a2a;font-weight:900}
+.toggle.active{background:#173f36;border-color:#2d9c76;color:#8ff0ca}
+.counter{text-align:center;padding:18px 10px}
+.counter-num{font-size:72px;line-height:1;font-weight:1000;letter-spacing:-4px;margin:8px 0 18px}
+.counter-controls{display:grid;grid-template-columns:1fr 1.4fr 1fr;gap:10px}
+.counter-controls button{font-size:28px;min-height:64px}
+.timeBtn{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;border:1px solid #35506d;background:#0d1a2b;color:#e8f1fb;border-radius:14px;padding:14px;margin:9px 0;text-align:left}
+.timeBtn.done{border-color:#2e9c76;background:#12362f}
+.timeBtn .label{font-weight:900}
+.timeBtn .time{color:#93a9c0;font-variant-numeric:tabular-nums}
+.timeBtn.done .time{color:#9ff0d0}
+.routeBox{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center}
+.routeArrow{text-align:center;color:#7fa4c8;font-size:22px}
+.small{font-size:13px;color:var(--muted)}
+.sessionLine{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px solid rgba(73,96,122,.35)}
+.sessionLine:last-child{border-bottom:0}
+.historyItem{border:1px solid var(--edge);background:#0c1827;border-radius:14px;padding:13px;margin-top:10px}
+.historyItem summary{font-weight:900;cursor:pointer}
+.kpi{font-size:25px;font-weight:1000}
+.footerNote{text-align:center;color:#71869f;font-size:12px;padding:15px}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#f0f6ff;color:#0b1624;padding:11px 15px;border-radius:12px;font-weight:900;box-shadow:var(--shadow);z-index:50;opacity:0;pointer-events:none;transition:.2s}
+.toast.show{opacity:1}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.72);display:flex;align-items:flex-end;justify-content:center;z-index:100;padding:14px}
+.modal.hidden{display:none}
+.modal-card{width:min(760px,100%);background:var(--panel);border:1px solid var(--edge);border-radius:22px 22px 16px 16px;padding:18px;box-shadow:var(--shadow)}
+.modal-card h2{margin-top:0}
+</style>
+</head>
+<body>
+
+<section id="loginScreen">
+  <div class="wrap">
+    <div class="brand">
+      <h1>Airside Bus Logger</h1>
+      <p>Passenger, kilometre and aircraft transfer records</p>
+    </div>
+
+    <div class="card">
+      <h2>Start shift</h2>
+      <div class="grid2">
+        <div>
+          <label for="busNo">Bus ID</label>
+          <input id="busNo" type="text" placeholder="e.g. A126" autocomplete="off" autocapitalize="characters">
+        </div>
+        <div>
+          <label for="startKm">Starting kilometres</label>
+          <input id="startKm" type="number" inputmode="decimal" placeholder="e.g. 145230">
+        </div>
+      </div>
+      <div style="margin-top:12px">
+        <label for="password">Password</label>
+        <input id="password" type="password" placeholder="Enter password">
+      </div>
+      <button class="btn" style="margin-top:14px" onclick="login()">Log in and start</button>
+      <p class="small" style="margin-bottom:0">Default password: <strong>1234</strong>. Change it in Settings after logging in.</p>
+    </div>
+  </div>
+</section>
+
+<section id="appScreen" class="hidden">
+  <div class="topbar">
+    <div class="topbar-inner">
+      <div>
+        <div class="title">Airside Bus Logger</div>
+        <div class="small" id="sessionHeader"></div>
+      </div>
+      <span class="badge" id="passengerBadge">👥 0</span>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="tabs">
+      <button class="tab active" data-tab="operation" onclick="showTab('operation')">Operation</button>
+      <button class="tab" data-tab="history" onclick="showTab('history')">History</button>
+      <button class="tab" data-tab="settings" onclick="showTab('settings')">Settings</button>
+    </div>
+
+    <main id="operationTab">
+      <div class="card">
+        <h3>Shift Dashboard</h3>
+        <div class="grid3">
+          <div>
+            <div class="small">Total flights</div>
+            <div class="kpi" id="dashFlights">0</div>
+          </div>
+          <div>
+            <div class="small">Total passengers</div>
+            <div class="kpi" id="dashPassengers">0</div>
+          </div>
+          <div>
+            <div class="small">Average passengers</div>
+            <div class="kpi" id="dashAverage">0</div>
+          </div>
+          <div>
+            <div class="small">Highlift jobs</div>
+            <div class="kpi" id="dashHighlift">0</div>
+          </div>
+          <div>
+            <div class="small">Crew jobs</div>
+            <div class="kpi" id="dashCrew">0</div>
+          </div>
+          <div>
+            <div class="small">Kilometres</div>
+            <div class="kpi" id="dashKm">In progress</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Service type</h3>
+        <div class="toggleRow">
+          <button id="highliftBtn" class="toggle" onclick="toggleFlag('highlift')">⬆ Highlift</button>
+          <button id="crewBtn" class="toggle" onclick="toggleFlag('crew')">👨‍✈️ Crew</button>
+        </div>
+      </div>
+
+      <div class="card counter">
+        <h3>Passenger clicker</h3>
+        <div class="counter-num" id="counterNum">0</div>
+        <div class="counter-controls">
+          <button class="btn red" onclick="changeCount(-1)">−</button>
+          <button class="btn green" onclick="changeCount(1)">+1</button>
+          <button class="btn amber" onclick="resetCount()">↺</button>
+        </div>
+        <p class="small">Tap +1 for each passenger boarding. The highest count is saved for the current movement.</p>
+      </div>
+
+      <div class="card">
+        <h3>Movement</h3>
+        <div class="tabs" style="margin-bottom:8px">
+          <button id="arrivalMode" class="tab active" onclick="setMovement('arrival')">Arrivals</button>
+          <button id="departureMode" class="tab" onclick="setMovement('departure')">Departures</button>
+          <button id="clearMovement" class="tab" onclick="clearMovement()">Clear</button>
+        </div>
+
+        <div class="routeBox">
+          <div>
+            <label id="fromLabel" for="fromBay">From bay</label>
+            <input id="fromBay" placeholder="e.g. F21" oninput="saveCurrent()">
+          </div>
+          <div class="routeArrow">→</div>
+          <div>
+            <label id="toLabel" for="toGate">To gate</label>
+            <input id="toGate" placeholder="e.g. D4" oninput="saveCurrent()">
+          </div>
+        </div>
+
+        <div id="timestampButtons" style="margin-top:14px"></div>
+
+        <div class="grid2" style="margin-top:14px">
+          <button class="btn secondary" onclick="saveMovement()">Save flight</button>
+          <button class="btn outline" onclick="undoLastTimestamp()">Undo last timestamp</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Flight details</h3>
+        <div class="grid2">
+          <div>
+            <label for="flightNumber">Flight number</label>
+            <input id="flightNumber" placeholder="e.g. QF430" oninput="saveCurrent()">
+          </div>
+          <div>
+            <label for="airline">Airline</label>
+            <input id="airline" placeholder="e.g. Qantas" oninput="saveCurrent()">
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Flight log</h3>
+        <div id="flightLogList"><p class="small">No flights saved yet.</p></div>
+      </div>
+
+      <div class="card">
+        <h3>End of day</h3>
+        <p class="small">Enter the ending kilometres only when your whole shift is finished.</p>
+        <button class="btn red" onclick="openEndShift()">End Shift</button>
+      </div>
+    </main>
+
+    <main id="historyTab" class="hidden">
+      <div class="card">
+        <div class="grid3">
+          <div><div class="small">Current passengers</div><div class="kpi" id="histPassengers">0</div></div>
+          <div><div class="small">Movements</div><div class="kpi" id="histMovements">0</div></div>
+          <div><div class="small">Kilometres</div><div class="kpi" id="histKm">—</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="grid2">
+          <button class="btn secondary" onclick="exportCSV()">Export CSV</button>
+          <button class="btn outline" onclick="clearHistory()">Clear saved history</button>
+        </div>
+      </div>
+      <div id="historyList"></div>
+    </main>
+
+    <main id="settingsTab" class="hidden">
+      <div class="card">
+        <h3>Change password</h3>
+        <label for="newPassword">New password</label>
+        <input id="newPassword" type="password" placeholder="Minimum 4 characters">
+        <button class="btn" style="margin-top:12px" onclick="changePassword()">Save new password</button>
+      </div>
+      <div class="card">
+        <h3>About storage</h3>
+        <p class="small">Records are stored only in this browser on this device. Export your CSV regularly as a backup.</p>
+      </div>
+    </main>
+
+    <div class="footerNote">Airside Bus Logger · Local device storage</div>
+  </div>
+</section>
+
+<div id="endShiftModal" class="modal hidden">
+  <div class="modal-card">
+    <h2>Finish shift</h2>
+    <p class="small">Bus <strong id="endBusNo"></strong> started at <strong id="endStartKm"></strong> km.</p>
+    <label for="endKm">Ending kilometres</label>
+    <input id="endKm" type="number" inputmode="decimal" placeholder="Enter final kilometres">
+    <div class="grid2" style="margin-top:14px">
+      <button class="btn secondary" onclick="closeEndShift()">Cancel</button>
+      <button class="btn red" onclick="logout()">Save and finish shift</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+const ARRIVAL_STEPS = [
+  "Chocks",
+  "First passenger on bus",
+  "Last passenger at aircraft",
+  "Arrived at gate",
+  "Last passenger departed bus"
+];
+
+const DEPARTURE_STEPS = [
+  "First passenger on board",
+  "Last passenger on bus",
+  "Arrived at aircraft / gate",
+  "Last passenger departed bus"
+];
+
+let state = {
+  loggedIn:false,
+  session:null,
+  movementType:"arrival",
+  count:0,
+  maxCount:0,
+  flags:{highlift:false,crew:false},
+  route:{from:"",to:""},
+  timestamps:{},
+  flight:{number:"",airline:""},
+  customLabels:{arrival:[...ARRIVAL_STEPS],departure:[...DEPARTURE_STEPS]},
+  editingMovementId:null
+};
+
+function storageGet(key,fallback){
+  try{return JSON.parse(localStorage.getItem(key)) ?? fallback}catch{return fallback}
+}
+function storageSet(key,val){localStorage.setItem(key,JSON.stringify(val))}
+function toast(msg){
+  const el=document.getElementById("toast");
+  el.textContent=msg; el.classList.add("show");
+  setTimeout(()=>el.classList.remove("show"),1800);
+}
+function fmtDateTime(iso){
+  if(!iso)return "";
+  return new Date(iso).toLocaleString([], {day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit",second:"2-digit"});
+}
+function fmtTime(iso){
+  if(!iso)return "Tap to record";
+  return new Date(iso).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit",second:"2-digit"});
+}
+function getPassword(){return localStorage.getItem("abl_password") || "1234"}
+
+function login(){
+  const bus=document.getElementById("busNo").value.trim();
+  const startKm=Number(document.getElementById("startKm").value);
+  const password=document.getElementById("password").value;
+  if(!bus)return toast("Enter the bus ID");
+  if(!Number.isFinite(startKm) || startKm<0)return toast("Enter starting kilometres");
+  if(password!==getPassword())return toast("Incorrect password");
+
+  state.loggedIn=true;
+  state.session={
+    id:Date.now(),
+    busNumber:bus.toUpperCase(),
+    startKm,
+    endKm:null,
+    startedAt:new Date().toISOString(),
+    endedAt:null,
+    movements:[]
+  };
+  state.movementType="arrival"; state.count=0; state.maxCount=0;
+  state.flags={highlift:false,crew:false}; state.route={from:"",to:""}; state.timestamps={};
+  state.flight={number:"",airline:""}; state.customLabels={arrival:[...ARRIVAL_STEPS],departure:[...DEPARTURE_STEPS]}; state.editingMovementId=null;
+  storageSet("abl_active",state);
+  renderApp();
+}
+
+function renderApp(){
+  document.getElementById("loginScreen").classList.toggle("hidden",state.loggedIn);
+  document.getElementById("appScreen").classList.toggle("hidden",!state.loggedIn);
+  if(!state.loggedIn)return;
+  document.getElementById("sessionHeader").textContent=`Bus ${state.session.busNumber} · Start ${state.session.startKm} km`;
+  renderCounter(); renderFlags(); renderMovement(); renderFlightLog(); renderDashboard(); renderHistory();
+}
+
+function renderCounter(){
+  document.getElementById("counterNum").textContent=state.count;
+  document.getElementById("passengerBadge").textContent=`👥 ${state.count}`;
+}
+function changeCount(n){
+  state.count=Math.max(0,state.count+n);
+  state.maxCount=Math.max(state.maxCount,state.count);
+  saveCurrent(); renderCounter();
+}
+function resetCount(){
+  if(confirm("Reset passenger count to zero?")){
+    state.count=0; state.maxCount=0; saveCurrent(); renderCounter();
+  }
+}
+function toggleFlag(flag){
+  state.flags[flag]=!state.flags[flag];
+  saveCurrent(); renderFlags();
+}
+function renderFlags(){
+  document.getElementById("highliftBtn").classList.toggle("active",state.flags.highlift);
+  document.getElementById("crewBtn").classList.toggle("active",state.flags.crew);
+}
+function setMovement(type){
+  if(state.movementType!==type && Object.keys(state.timestamps).length){
+    if(!confirm("Switch movement type and clear the current timestamps?"))return;
+    state.timestamps={};
+  }
+  state.movementType=type;
+  saveCurrent(); renderMovement();
+}
+function renderMovement(){
+  const arrival=state.movementType==="arrival";
+  document.getElementById("arrivalMode").classList.toggle("active",arrival);
+  document.getElementById("departureMode").classList.toggle("active",!arrival);
+  document.getElementById("fromLabel").textContent=arrival?"From bay":"From gate";
+  document.getElementById("toLabel").textContent=arrival?"To gate":"To bay / aircraft";
+  document.getElementById("fromBay").value=state.route.from||"";
+  document.getElementById("toGate").value=state.route.to||"";
+  const flightNo=document.getElementById("flightNumber");
+  const airline=document.getElementById("airline");
+  if(flightNo) flightNo.value=state.flight?.number||"";
+  if(airline) airline.value=state.flight?.airline||"";
+  const steps=state.customLabels?.[state.movementType] || (arrival?ARRIVAL_STEPS:DEPARTURE_STEPS);
+  const box=document.getElementById("timestampButtons");
+  box.innerHTML="";
+  steps.forEach((label,i)=>{
+    const iso=state.timestamps[i];
+    const row=document.createElement("div");
+    row.style.marginBottom="9px";
+    row.innerHTML=`
+      <div style="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;margin-bottom:6px">
+        <input value="${escapeHtml(label)}" aria-label="Timestamp label ${i+1}" onchange="renameTimestamp(${i},this.value)">
+        <button class="btn outline" style="width:auto;padding:10px 12px" onclick="resetTimestampLabel(${i})">Reset</button>
+      </div>`;
+    const btn=document.createElement("button");
+    btn.className="timeBtn"+(iso?" done":"");
+    btn.innerHTML=`<span class="label">${i+1}. ${escapeHtml(label)}</span><span class="time">${fmtTime(iso)}</span>`;
+    btn.onclick=()=>stamp(i);
+    row.appendChild(btn);
+    box.appendChild(row);
+  });
+}
+function renameTimestamp(i,value){
+  const clean=value.trim();
+  if(!clean)return toast("Timestamp name cannot be blank");
+  if(!state.customLabels)state.customLabels={arrival:[...ARRIVAL_STEPS],departure:[...DEPARTURE_STEPS]};
+  state.customLabels[state.movementType][i]=clean;
+  saveCurrent();renderMovement();toast("Timestamp renamed");
+}
+function resetTimestampLabel(i){
+  const defaults=state.movementType==="arrival"?ARRIVAL_STEPS:DEPARTURE_STEPS;
+  state.customLabels[state.movementType][i]=defaults[i];
+  saveCurrent();renderMovement();toast("Timestamp name reset");
+}
+function stamp(i){
+  state.timestamps[i]=new Date().toISOString();
+  saveCurrent(); renderMovement();
+  toast("Timestamp recorded");
+}
+function undoLastTimestamp(){
+  const keys=Object.keys(state.timestamps).map(Number).sort((a,b)=>b-a);
+  if(!keys.length)return toast("No timestamp to undo");
+  delete state.timestamps[keys[0]];
+  saveCurrent(); renderMovement(); toast("Last timestamp removed");
+}
+function clearMovement(){
+  if(confirm("Clear the current movement details?")){
+    state.count=0;state.maxCount=0;state.route={from:"",to:""};state.timestamps={};state.flags={highlift:false,crew:false};
+    state.flight={number:"",airline:""};state.editingMovementId=null;
+    saveCurrent();renderApp();
+  }
+}
+function saveCurrent(){
+  if(!state.loggedIn)return;
+  const fromEl=document.getElementById("fromBay"),toEl=document.getElementById("toGate");
+  if(fromEl)state.route.from=fromEl.value.trim().toUpperCase();
+  if(toEl)state.route.to=toEl.value.trim().toUpperCase();
+  const flightNo=document.getElementById("flightNumber"), airline=document.getElementById("airline");
+  if(flightNo)state.flight.number=flightNo.value.trim().toUpperCase();
+  if(airline)state.flight.airline=airline.value.trim();
+  storageSet("abl_active",state);
+}
+function saveMovement(){
+  saveCurrent();
+  const steps=state.customLabels?.[state.movementType] || (state.movementType==="arrival"?ARRIVAL_STEPS:DEPARTURE_STEPS);
+  if(!state.route.from || !state.route.to)return toast("Enter both route locations");
+  if(!state.flight.number)return toast("Enter the flight number");
+  if(!Object.keys(state.timestamps).length)return toast("Record at least one timestamp");
+  const movement={
+    id:state.editingMovementId || Date.now(),
+    type:state.movementType,
+    from:state.route.from,
+    to:state.route.to,
+    flightNumber:state.flight.number,
+    airline:state.flight.airline,
+    passengers:state.maxCount,
+    highlift:state.flags.highlift,
+    crew:state.flags.crew,
+    savedAt:new Date().toISOString(),
+    timestamps:steps.map((name,i)=>({name,time:state.timestamps[i]||""}))
+  };
+  if(state.editingMovementId){
+    const idx=state.session.movements.findIndex(m=>m.id===state.editingMovementId);
+    if(idx>=0)state.session.movements[idx]=movement;
+    toast("Flight updated");
+  }else{
+    state.session.movements.push(movement);
+    toast("Flight saved");
+  }
+  state.count=0;state.maxCount=0;state.route={from:"",to:""};state.timestamps={};state.flags={highlift:false,crew:false};
+  state.flight={number:"",airline:""};state.editingMovementId=null;
+  storageSet("abl_active",state);
+  renderApp();
+}
+function renderFlightLog(){
+  const box=document.getElementById("flightLogList");
+  if(!box||!state.session)return;
+  const list=state.session.movements||[];
+  if(!list.length){
+    box.innerHTML='<p class="small">No flights saved yet.</p>';
+    return;
+  }
+  box.innerHTML="";
+  list.slice().reverse().forEach(m=>{
+    const item=document.createElement("div");
+    item.className="historyItem";
+    item.innerHTML=`
+      <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start">
+        <div>
+          <strong>${escapeHtml(m.flightNumber||"No flight")}${m.airline?` · ${escapeHtml(m.airline)}`:""}</strong>
+          <div class="small">${m.type==="arrival"?"Arrival":"Departure"} · ${escapeHtml(m.from)} → ${escapeHtml(m.to)} · ${m.passengers} passengers</div>
+        </div>
+        <span class="small">${fmtTime(m.savedAt)}</span>
+      </div>
+      <div class="grid2" style="margin-top:10px">
+        <button class="btn secondary" onclick="editMovement(${m.id})">Edit</button>
+        <button class="btn red" onclick="deleteMovement(${m.id})">Delete</button>
+      </div>`;
+    box.appendChild(item);
+  });
+}
+function editMovement(id){
+  const m=state.session.movements.find(x=>x.id===id);
+  if(!m)return;
+  state.editingMovementId=id;
+  state.movementType=m.type;
+  state.route={from:m.from,to:m.to};
+  state.flight={number:m.flightNumber||"",airline:m.airline||""};
+  state.count=m.passengers||0;state.maxCount=m.passengers||0;
+  state.flags={highlift:!!m.highlift,crew:!!m.crew};
+  state.timestamps={};
+  if(!state.customLabels)state.customLabels={arrival:[...ARRIVAL_STEPS],departure:[...DEPARTURE_STEPS]};
+  m.timestamps.forEach((t,i)=>{
+    state.customLabels[m.type][i]=t.name;
+    if(t.time)state.timestamps[i]=t.time;
+  });
+  saveCurrent();showTab("operation");renderApp();toast("Editing flight");
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+function deleteMovement(id){
+  const m=state.session.movements.find(x=>x.id===id);
+  if(!m)return;
+  if(confirm(`Delete flight ${m.flightNumber||""}?`)){
+    state.session.movements=state.session.movements.filter(x=>x.id!==id);
+    if(state.editingMovementId===id)state.editingMovementId=null;
+    storageSet("abl_active",state);
+    renderApp();toast("Flight deleted");
+  }
+}
+function openEndShift(){
+  document.getElementById("endBusNo").textContent=state.session.busNumber;
+  document.getElementById("endStartKm").textContent=state.session.startKm;
+  document.getElementById("endKm").value="";
+  document.getElementById("endShiftModal").classList.remove("hidden");
+  setTimeout(()=>document.getElementById("endKm").focus(),50);
+}
+function closeEndShift(){
+  document.getElementById("endShiftModal").classList.add("hidden");
+}
+function logout(){
+  const endKm=Number(document.getElementById("endKm").value);
+  if(!Number.isFinite(endKm) || endKm<state.session.startKm)return toast("Enter valid ending kilometres");
+  state.session.endKm=endKm;
+  state.session.endedAt=new Date().toISOString();
+  const history=storageGet("abl_history",[]);
+  history.unshift(state.session);
+  storageSet("abl_history",history);
+  localStorage.removeItem("abl_active");
+  state={loggedIn:false,session:null,movementType:"arrival",count:0,maxCount:0,flags:{highlift:false,crew:false},route:{from:"",to:""},timestamps:{},flight:{number:"",airline:""},customLabels:{arrival:[...ARRIVAL_STEPS],departure:[...DEPARTURE_STEPS]},editingMovementId:null};
+  document.getElementById("password").value="";
+  document.getElementById("startKm").value="";
+  document.getElementById("endKm").value="";
+  closeEndShift();
+  renderApp();
+  toast("Shift saved and logged out");
+}
+function showTab(name){
+  ["operation","history","settings"].forEach(n=>{
+    document.getElementById(n+"Tab").classList.toggle("hidden",n!==name);
+    document.querySelector(`[data-tab="${n}"]`).classList.toggle("active",n===name);
+  });
+  if(name==="history")renderHistory();
+}
+function renderDashboard(){
+  if(!state.session)return;
+  const moves=state.session.movements||[];
+  const flights=moves.length;
+  const passengers=moves.reduce((sum,m)=>sum+(Number(m.passengers)||0),0);
+  const highlift=moves.filter(m=>m.highlift).length;
+  const crew=moves.filter(m=>m.crew).length;
+  const average=flights?passengers/flights:0;
+  const km=state.session.endKm!=null
+    ? Math.max(0,Number(state.session.endKm)-Number(state.session.startKm))
+    : null;
+
+  const set=(id,val)=>{
+    const el=document.getElementById(id);
+    if(el)el.textContent=val;
+  };
+  set("dashFlights",flights);
+  set("dashPassengers",passengers);
+  set("dashAverage",flights?average.toFixed(1):"0");
+  set("dashHighlift",highlift);
+  set("dashCrew",crew);
+  set("dashKm",km==null?"In progress":km.toFixed(1));
+}
+function renderHistory(){
+  const sessions=storageGet("abl_history",[]);
+  const currentMoves=state.session?.movements?.length||0;
+  document.getElementById("histPassengers").textContent=state.session?.movements?.reduce((a,m)=>a+m.passengers,0)||0;
+  document.getElementById("histMovements").textContent=currentMoves;
+  const km=state.session?.endKm!=null?state.session.endKm-state.session.startKm:null;
+  document.getElementById("histKm").textContent=km==null?"—":km.toFixed(1);
+
+  const list=document.getElementById("historyList");
+  list.innerHTML="";
+  if(state.session && state.session.movements.length){
+    list.appendChild(sessionCard(state.session,true));
+  }
+  sessions.forEach(s=>list.appendChild(sessionCard(s,false)));
+  if(!sessions.length && !(state.session&&state.session.movements.length)){
+    list.innerHTML='<div class="card"><p class="small">No saved shifts yet.</p></div>';
+  }
+}
+function sessionCard(s,current){
+  const card=document.createElement("div");
+  card.className="card";
+  const km=s.endKm!=null?(s.endKm-s.startKm).toFixed(1):"In progress";
+  const total=s.movements.reduce((a,m)=>a+m.passengers,0);
+  card.innerHTML=`
+    <h3>${current?"Current shift":"Bus "+escapeHtml(s.busNumber)}</h3>
+    <div class="sessionLine"><span>Date</span><strong>${fmtDateTime(s.startedAt)}</strong></div>
+    <div class="sessionLine"><span>Kilometres</span><strong>${km}</strong></div>
+    <div class="sessionLine"><span>Movements</span><strong>${s.movements.length}</strong></div>
+    <div class="sessionLine"><span>Total passengers</span><strong>${total}</strong></div>`;
+  s.movements.forEach(m=>{
+    const d=document.createElement("details");
+    d.className="historyItem";
+    const flags=[m.highlift?"Highlift":"",m.crew?"Crew":""].filter(Boolean).join(" · ");
+    d.innerHTML=`<summary>${escapeHtml(m.flightNumber||"No flight")} · ${m.type==="arrival"?"Arrival":"Departure"} · ${escapeHtml(m.from)} → ${escapeHtml(m.to)} · ${m.passengers} pax</summary>
+      <p class="small">${flags||"Standard service"} · Saved ${fmtDateTime(m.savedAt)}</p>
+      ${m.timestamps.map(t=>`<div class="sessionLine"><span>${escapeHtml(t.name)}</span><strong>${t.time?fmtTime(t.time):"—"}</strong></div>`).join("")}`;
+    card.appendChild(d);
+  });
+  return card;
+}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[c]))}
+function changePassword(){
+  const p=document.getElementById("newPassword").value;
+  if(p.length<4)return toast("Use at least 4 characters");
+  localStorage.setItem("abl_password",p);
+  document.getElementById("newPassword").value="";
+  toast("Password changed");
+}
+function clearHistory(){
+  if(confirm("Delete all completed shift history from this device?")){
+    localStorage.removeItem("abl_history");renderHistory();toast("History cleared");
+  }
+}
+function csvCell(v){
+  const s=String(v??"").replace(/"/g,'""');
+  return `"${s}"`;
+}
+function exportCSV(){
+  const sessions=storageGet("abl_history",[]);
+  if(state.session)sessions.unshift(state.session);
+  if(!sessions.length)return toast("No records to export");
+  const rows=[["Shift Start","Shift End","Bus","Start KM","End KM","Distance KM","Flight Number","Airline","Movement","From","To","Passengers","Highlift","Crew","Step","Timestamp"]];
+  sessions.forEach(s=>{
+    if(!s.movements.length){
+      rows.push([s.startedAt,s.endedAt||"",s.busNumber,s.startKm,s.endKm??"",s.endKm!=null?s.endKm-s.startKm:"","","","","","","","",""]);
+    }
+    s.movements.forEach(m=>{
+      if(!m.timestamps.length)m.timestamps=[{name:"",time:""}];
+      m.timestamps.forEach(t=>rows.push([
+        s.startedAt,s.endedAt||"",s.busNumber,s.startKm,s.endKm??"",
+        s.endKm!=null?s.endKm-s.startKm:"",
+        m.flightNumber||"",m.airline||"",m.type,m.from,m.to,m.passengers,m.highlift?"Yes":"No",m.crew?"Yes":"No",t.name,t.time
+      ]));
+    });
+  });
+  const csv=rows.map(r=>r.map(csvCell).join(",")).join("\n");
+  const blob=new Blob([csv],{type:"text/csv;charset=utf-8"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download=`airside-bus-records-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+(function init(){
+  const active=storageGet("abl_active",null);
+  if(active?.loggedIn&&active.session){
+    state=active;
+    state.flight=state.flight||{number:"",airline:""};
+    state.customLabels=state.customLabels||{arrival:[...ARRIVAL_STEPS],departure:[...DEPARTURE_STEPS]};
+    state.editingMovementId=state.editingMovementId||null;
+  }
+  renderApp();
+})();
+</script>
+<script>if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("service-worker.js"));}</script>
+</body>
+</html>

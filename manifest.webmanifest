@@ -1,0 +1,21 @@
+{
+  "name": "Airside Bus Logger",
+  "short_name": "Bus Logger",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#07111d",
+  "theme_color": "#0b1524",
+  "description": "Airside bus shift, passenger and flight logger",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
